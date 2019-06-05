@@ -1,7 +1,9 @@
 package RouteMap::Model::TownNetwork;
 
 use strict;
-use JSON::XS;
+use Mojo::JSON "decode_json";
+use utf8;
+binmode STDOUT, ":utf8";
 
 sub new {
     my $class = shift;
@@ -12,14 +14,20 @@ sub new {
     return $self;
 }
 
-sub initMap {
-	my @nodes = ["Helsinki", "Turku"];
-	my @roads = [{start => "Helsinki", end => "Turku", Color => "Green"}];
+sub loadDB {
+    my $json;
+    local $/;
+    open my $file, "<", "towns.json";
+    $json = <$file>;
+    close $file;
 
-	my $j = JSON::XS->new->utf8->pretty(1);
-	my $out = $j->encode({nodes => @nodes, edges => @roads});
-
-	return $out;
+    my $db = decode_json $json;
+    return $db;
 }
+
+sub initMap {
+    return loadDB();
+}
+
 
 1;
