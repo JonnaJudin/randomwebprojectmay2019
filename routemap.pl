@@ -5,7 +5,7 @@ use lib 'lib';
 use RouteMap::Model::TownNetwork;
 
 # Helper to init our route model
-helper route => sub {state $users = RouteMap::Model::TownNetwork->new };
+helper route => sub {state $route = RouteMap::Model::TownNetwork->new };
 
 get '/' => sub {
   my $c = shift;

@@ -3,7 +3,14 @@ package RouteMap::Model::TownNetwork;
 use strict;
 use JSON::XS;
 
-sub new { bless {}, shift }
+sub new {
+    my $class = shift;
+    my $self = {};
+
+    bless $self, $class;
+
+    return $self;
+}
 
 sub initMap {
 	my @nodes = ["Helsinki", "Turku"];
