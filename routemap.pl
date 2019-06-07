@@ -35,9 +35,7 @@ __DATA__
 <h1>Routemap<h1>
 <div class="map">
     <h2>Map</h2>
-    <pre line-spacing:0>
-<%= $graph %>
-    </pre>
+<%== $graph %>
     <h2>========</h2>
 </div>
 <div id="colorinput">

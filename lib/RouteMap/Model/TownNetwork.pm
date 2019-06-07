@@ -3,6 +3,8 @@ package RouteMap::Model::TownNetwork;
 use strict;
 use Mojo::JSON "decode_json";
 use Graph::Easy;
+use Graph::Easy::As_svg;
+use Data::Dump "dump";
 
 use utf8;
 binmode STDOUT, ":utf8";
@@ -30,22 +32,22 @@ sub loadDB {
 sub initMap {
     my $map = loadDB();
 
-    my $g = Graph::Easy->new(undirected => "true");
-    
-#    foreach ($map->{'nodes'}){
-#       $g->add_node("$_"); 
-#    }
-## debug
-$g->add_edge('A', 'B');
-$g->add_edge('C', 'B');
-$g->add_edge('A', 'D');
-$g->add_edge('D', 'C');
-$g->add_edge('F', 'C');
-$g->add_edge('D', 'F');
-
-
-    return $g->as_boxart();
-
+    my $g = Graph::Easy->new(undirected => 1);
+    my @towns = @{$map->{"nodes"} };    
+    foreach (@towns){
+       $g->add_node("$_"); 
+    }
+    my @roads = @{ $map->{"edges"} };
+    foreach (@roads){
+        my $start = $_->{"start"};
+        my $end = $_->{"end"};
+        my $color = $_->{"color"};
+        my $edge = $g->add_edge_once($start, $end);
+        if(defined $edge){
+                    $edge->set_attribute('color', $color);
+        }
+    }
+    return $g->as_svg();
 }
 
 
