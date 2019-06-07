@@ -13,10 +13,12 @@ any '/' => sub {
     my $green = $c->param('green') || '';
     my $blue  = $c->param('blue')  || '';
 
-    my $data = $c->route->initMap;
+    my $data = $c->route->loadDB;
     my $towns = $data->{'nodes'};
+    my $graph = $c->route->initMap;
     $c->stash(
-        towns => $towns
+        towns => $towns,
+        graph => $graph
         );
   
     return $c->render unless $red && $green && $blue;
@@ -31,7 +33,13 @@ __DATA__
 % title 'Routemap';
 %= stylesheet 'style.css'
 <h1>Routemap<h1>
-<div class="map">TODO</div>
+<div class="map">
+    <h2>Map</h2>
+    <pre line-spacing:0>
+<%= $graph %>
+    </pre>
+    <h2>========</h2>
+</div>
 <div id="colorinput">
    <h2>Insert time needed for each line in minutes:<h2>
    %= form_for index => begin
@@ -44,7 +52,7 @@ __DATA__
            <br>
            <h3>Select starting town:</h3>
            Town: <br>
-           %= select_field town => <%= $towns 
+           %= select_field town => <%= $towns
            <br>
            %= submit_button 'Calculate Route', id => 'calculate'
    % end
