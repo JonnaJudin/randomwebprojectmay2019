@@ -2,6 +2,9 @@ package RouteMap::Model::TownNetwork;
 
 use strict;
 use Mojo::JSON "decode_json";
+use Graph;
+use Graph::Undirected;
+use Graph::Convert;
 use Graph::Easy;
 use Graph::Easy::As_svg;
 use Data::Dump "dump";
@@ -11,18 +14,31 @@ binmode STDOUT, ":utf8";
 
 sub new {
     my $class = shift;
-    my $self = {};
+    my $graph = Graph::Undirected->new();
+    my $rawData = loadDB();
 
-    bless $self, $class;
+    my $self = bless {
+                       graphData => $graph,
+                       rawData => $rawData,
+               }, $class;
 
     return $self;
 }
 
+sub graphData {
+    my $self = shift;
+    return $self->{graphData};
+}
+
+sub rawData {
+    my $self = shift;
+    return $self->{rawData};
+}
+
 sub loadDB {
-    my $json;
     local $/;
     open my $file, "<", "towns.json";
-    $json = <$file>;
+    my $json = <$file>;
     close $file;
 
     my $db = decode_json $json;
@@ -30,24 +46,39 @@ sub loadDB {
 }
 
 sub initMap {
-    my $map = loadDB();
+    my $self = shift;
+    my $map = $self->rawData;
+    
 
-    my $g = Graph::Easy->new(undirected => 1);
     my @towns = @{$map->{"nodes"} };    
     foreach (@towns){
-       $g->add_node("$_"); 
+       $self->graphData->add_vertex("$_"); 
     }
+
     my @roads = @{ $map->{"edges"} };
     foreach (@roads){
         my $start = $_->{"start"};
         my $end = $_->{"end"};
-        my $color = $_->{"color"};
-        my $edge = $g->add_edge_once($start, $end);
-        if(defined $edge){
-                    $edge->set_attribute('color', $color);
-        }
+        $self->graphData->set_edge_attribute($start, $end, 'weight', 1);
+        $self->graphData->set_edge_attribute($start, $end, 'color', $_->{"color"});
     }
-    return $g->as_svg();
+
+    print "\n$map\n";
+    return "$map";
+}
+
+sub calculateRoute {
+    my ($self, $origin, $r, $g, $b) = @_;
+    my %details = ('red' => $r, 'green' => $g, 'blue' => $b);
+# REMOVE
+$self->loadDB;
+$self->initMap;
+    my $path = $self->graphData->SPT_Dijkstra($origin);
+    my $clean = $path->copy_graph;
+    # my $ge = Graph::Convert->as_graph_easy( $clean  );
+    my $ge = Graph::Convert->as_graph_easy($clean);
+
+    return $ge->as_svg();
 }
 
 
