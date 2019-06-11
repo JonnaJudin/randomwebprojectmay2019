@@ -11,11 +11,11 @@ any '/' => sub {
     my $c = shift;
 
     $c->route->initMap;
-    my $towns = $c->route->rawData->{'nodes'};
-    my $graph = $c->route->graphData;
+    my $towns = $c->route->getAllTowns();
+    my $graph = $c->route->output;
     $c->stash(
         towns => $towns,
-        graph => $graph
+        graph => $graph,
         );
   
     return $c->render;
@@ -28,10 +28,9 @@ get '/route' => sub {
     my $red   = $c->param('red')   || '1';
     my $green = $c->param('green') || '1';
     my $blue  = $c->param('blue')  || '1';
-    my $town  = $c->param('town')  || $c->route->rawData->{'node'}[0];
+    my $town  = $c->param('town')  || $c->route->getTown();
 
     my $route = $c->route->calculateRoute($town, $red, $green, $blue);
-    # TODO: save route at the object and use that
     $c->stash(route => $route);
 
     return $c->render;
