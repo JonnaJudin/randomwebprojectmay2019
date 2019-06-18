@@ -7,31 +7,35 @@ use RouteMap::Model::TownNetwork;
 # Helper to init our route model
 helper route => sub {state $route = RouteMap::Model::TownNetwork->new };
 
+# index page
 any '/' => sub {
     my $c = shift;
 
     $c->route->initMap;
-    my $towns = $c->route->getAllTowns();
+    my @towns = $c->route->getAllTowns();
     my $graph = $c->route->output;
     $c->stash(
-        towns => $towns,
+        towns => @towns,
         graph => $graph,
         );
-  
     return $c->render;
 
 } => 'index';
 
+# routemap page
 get '/route' => sub {
     my $c = shift;
 
+    # if no time values, set to 1
     my $red   = $c->param('red')   || '1';
     my $green = $c->param('green') || '1';
     my $blue  = $c->param('blue')  || '1';
+    # if no town given, get one 
     my $town  = $c->param('town')  || $c->route->getTown();
 
-    my $route = $c->route->calculateRoute($town, $red, $green, $blue);
+    my ($route, $time) = $c->route->calculateRoute($town, $red, $green, $blue);
     $c->stash(route => $route);
+    $c->stash(time => $time);
 
     return $c->render;
 
@@ -77,7 +81,10 @@ __DATA__
     <h2>========</h2>
 <%== $route %>
     <h2>========</h2>
-</div>
+    <p>Total time taken in minutes:
+    <%== $time %>
+    </p>
+    </div>
 <div>
 %= link_to 'Back to Main' => 'index'
 </div>
